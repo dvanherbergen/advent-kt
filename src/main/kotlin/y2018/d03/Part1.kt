@@ -2,6 +2,8 @@ package y2018.d03
 
 import java.io.File
 
+typealias Coordinate = Pair<Int, Int>
+
 data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val height: Int) {
 
     constructor(input: String) : this(
@@ -13,8 +15,8 @@ data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val h
             input.substringAfter("x").toInt()
     )
 
-    fun squares(): List<Pair<Int, Int>> {
-        val s = ArrayList<Pair<Int, Int>>()
+    fun squares(): List<Coordinate> {
+        val s = ArrayList<Coordinate>()
         for (i in left until (left + width)) {
             for (j in top until (top + height)) {
                 s.add(Pair(i, j))
