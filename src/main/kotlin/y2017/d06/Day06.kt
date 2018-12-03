@@ -1,7 +1,6 @@
 package y2017.d06
 
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.io.File
 
 fun Array<Int>.nextIndex(i: Int): Int = if (i == this.size - 1) 0 else i + 1
 
@@ -39,7 +38,7 @@ fun findLoop(a: Array<Int>): Pair<Int, Int> {
 
 fun main(args: Array<String>) {
 
-    val input: Array<Int> = Files.readString(Paths.get("src/main/resources/y2017/d06/input.txt")).split("\\s+".toRegex()).map { it.toInt() }.toTypedArray()
+    val input: Array<Int> = File("src/main/resources/y2017/d06/input.txt").readText().split("\\s+".toRegex()).map { it.toInt() }.toTypedArray()
 
     assert(Pair(5, 4) == findLoop(arrayOf(0, 2, 7, 0)))
     println("Part 1, 2: result = ${findLoop(input)}")

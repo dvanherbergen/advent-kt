@@ -4,8 +4,7 @@ import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.toObservable
 import io.reactivex.rxkotlin.zipWith
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.io.File
 
 fun String.toSingleDigitsObservable(): Observable<Int> = this.chars().iterator().toObservable().cache().map { Character.getNumericValue(it) }
 
@@ -29,7 +28,7 @@ class Day01 {
 }
 
 fun main(args: Array<String>) {
-    val input = Files.readString(Paths.get("src/main/resources/y2017/d01/input.txt"))
+    val input = File("src/main/resources/y2017/d01/input.txt").readText()
     println("Part 1: result = ${Day01().part1(input).blockingGet()}")
 
     assert(12 == Day01().part2("123123").blockingGet())
