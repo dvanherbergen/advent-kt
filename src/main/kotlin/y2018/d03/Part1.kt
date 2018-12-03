@@ -5,6 +5,7 @@ import java.io.File
 data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val height: Int) {
 
     constructor(input: String) : this(
+            // no regex for me today :-)
             input.substring(1).substringBefore(" ").toInt(),
             input.substringAfter("@ ").substringBefore(",").toInt(),
             input.substringAfter(",").substringBefore(":").toInt(),
@@ -25,7 +26,7 @@ data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val h
 
 fun main(args: Array<String>) {
 
-    val c = File("src/main/resources/y2018/d03/input.txt").readLines()
+    val overlaps = File("src/main/resources/y2018/d03/input.txt").readLines()
             .map { Claim(it) }
             .flatMap { it.squares() }
             .groupingBy { it }
@@ -33,5 +34,5 @@ fun main(args: Array<String>) {
             .filter { it.value > 1 }
             .count()
 
-    println("Part 1: result = $c")
+    println("Part 1: result = $overlaps")
 }

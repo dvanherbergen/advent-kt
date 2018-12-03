@@ -2,9 +2,9 @@ package y2018.d03
 
 import java.io.File
 
-fun Collection<Pair<Int, Int>>.containsNone(input: Collection<Pair<Int, Int>>): Boolean {
-    for (c in input) {
-        if (this.contains(c)) {
+fun <T> Collection<T>.containsNone(input: Collection<T>): Boolean {
+    input.forEach {
+        if (this.contains(it)) {
             return false
         }
     }
@@ -23,9 +23,9 @@ fun main(args: Array<String>) {
             .filter { it.value > 1 }
             .keys
 
-   val c = claims.find {
+   val claim = claims.find {
         overlappedSquares.containsNone(it.squares())
     }
 
-    println("Part 2: result = $c")
+    println("Part 2: result = $claim")
 }
