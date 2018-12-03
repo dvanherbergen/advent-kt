@@ -1,22 +1,14 @@
 package y2018.d02
 
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.io.File
 
-fun getInput() = Files.readAllLines(Paths.get("src/main/resources/y2018/d02/input.txt"))
+fun getInput() = File("src/main/resources/y2018/d02/input.txt").readLines()
 
-fun String.twoAndThreeCount(): Pair<Int, Int> {
+fun String.hasLetterCount(n: Int): Boolean {
     return this.asSequence()
             .groupingBy { it }
             .eachCount()
-            .values
-            .fold(Pair(0, 0)) { acc, v ->
-                when (v) {
-                    2 -> Pair(1, acc.second)
-                    3 -> Pair(acc.first, 1)
-                    else -> acc
-                }
-            }
+            .containsValue(n)
 }
 
 fun String.differsByOne(other: String): Boolean {
@@ -31,11 +23,13 @@ fun String.commonLetters(other: String): String {
 }
 
 fun part1(input: List<String>): Int {
-    val counts = input
-            .asSequence()
-            .map { it.twoAndThreeCount() }
-            .reduce { x, y -> Pair(x.first + y.first, x.second + y.second) }
-    return counts.first * counts.second
+    var twoCount = 0
+    var threeCount = 0
+    input.forEach {
+        if (it.hasLetterCount(2)) twoCount++
+        if (it.hasLetterCount(3)) threeCount++
+    }
+    return twoCount * threeCount
 }
 
 fun part2(codes: List<String>): String {
@@ -50,8 +44,8 @@ fun part2(codes: List<String>): String {
 }
 
 fun main(args: Array<String>) {
-    assert(Pair(1,1) == "bababc".twoAndThreeCount())
-    assert(Pair(0,1) == "abcccd".twoAndThreeCount())
+    assert("bababc".hasLetterCount(2))
+    assert("bababc".hasLetterCount(3))
     assert(12 == part1(listOf("abcdef", "bababc", "abbcde", "abcccd", "aabcdd", "abcdee", "ababab")))
     println("Part 1: result = ${part1(getInput())}")
 
