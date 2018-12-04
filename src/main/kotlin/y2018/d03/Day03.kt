@@ -1,4 +1,5 @@
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 typealias Coordinate = Pair<Int, Int>
 
@@ -17,24 +18,29 @@ data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val h
 
 fun main(args: Array<String>) {
 
-    val regex = """#(\d*) @ (\d*),(\d*): (\d*)x(\d*)""".toRegex()
+    val timeElapsed = measureTimeMillis {
 
-    val claims = File("src/main/resources/y2018/d03/input.txt").readLines()
-            .map { regex.matchEntire(it)!!.destructured
-                    .let { (a, b, c, d, e) -> Claim(a.toInt(), b.toInt(), c.toInt(), d.toInt(), e.toInt()) }}
-    val overlaps = claims
-            .flatMap { it.squares() }
-            .groupingBy { it }
-            .eachCount()
-            .filter { it.value > 1 }
+        val regex = """#(\d*) @ (\d*),(\d*): (\d*)x(\d*)""".toRegex()
 
-    println("Part 1: result = ${overlaps.count()}")
+        val claims = File("src/main/resources/y2018/d03/input.txt").readLines()
+                .map { regex.matchEntire(it)!!.destructured
+                        .let { (a, b, c, d, e) -> Claim(a.toInt(), b.toInt(), c.toInt(), d.toInt(), e.toInt()) }}
+        val overlaps = claims
+                .flatMap { it.squares() }
+                .groupingBy { it }
+                .eachCount()
+                .filter { it.value > 1 }
 
-    val claim = claims.find {
-        overlaps.keys.containsNone(it.squares())
+        println("Part 1: result = ${overlaps.count()}")
+
+        val claim = claims.find {
+            overlaps.keys.containsNone(it.squares())
+        }
+
+        println("Part 2: result = $claim")
     }
 
-    println("Part 2: result = $claim")
+    println("Took $timeElapsed ms.")
 }
 
 fun <T> Collection<T>.containsNone(input: Collection<T>): Boolean {
