@@ -1,59 +1,75 @@
 package y2018.d04
 
 import java.io.File
+import java.util.*
+import kotlin.collections.ArrayList
 
-
-data class Clock(val hour: Int, val minute: Int) {
-    fun tick(): Clock {
+data class SleepClock(val guard: Int, val hour: Int, val minute: Int) {
+    private fun tick(): SleepClock {
         return when (minute) {
-            59 -> Clock(hour+1, 0)
-            else -> Clock( hour, minute + 1)
+            59 -> SleepClock(guard, hour + 1, 0)
+            else -> SleepClock(guard, hour, minute + 1)
         }
     }
-    fun midnightHour(): Boolean {
-        return hour == 0
+
+    private fun after(c: SleepClock): Boolean {
+        return (hour > c.hour || hour == c.hour && minute > c.minute)
     }
 
+    fun tickTo(c: SleepClock): List<SleepClock> {
+        val ticks: MutableList<SleepClock> = ArrayList()
+        var time = this
+        while (c.after(time)) {
+            ticks.add(time)
+            time = time.tick()
+        }
+        return ticks
+    }
 }
-
 
 fun main(args: Array<String>) {
 
-    var currentGuard = 0;
-    var lastSleepStart: Clock = Clock(0,0)
+    var currentGuard = 0
+    var lastSleepStart = SleepClock(0, 0, 0)
 
-    val demo = File("src/main/resources/y2018/d04/demo.txt").readLines()
-                .sortedBy { it.substringBefore("]") }
-
-    .forEach {
-        println(it)
-        val time = it.substring(12).substringBefore("]").split(":")
-        val currentTime = Clock(time.get(0).toInt(), time.get(1).toInt())
-        println(currentTime)
-
-       if (it.contains("#")) {
-            currentGuard = it.substringAfter("#").substringBefore(" ").toInt()
-       } else {
-            if (it.contains("asleep")) {
-                println("$currentGuard : sleep")
-                lastSleepStart = currentTime
-            } else {
-                println("$currentGuard : up")
-
-                while (currentTime > lastSleepStart) {
-
-                }
-
-                // calculate sleep minutes
-                if (lastSleepStart.midnightHour()) {
-
+    val sleepMinutes = File("src/main/resources/y2018/d04/input.txt").readLines()
+            .sortedBy { it.substringBefore("]") }
+            .map {
+                val time = it.substring(12).substringBefore("]").split(":")
+                if (it.contains("#")) {
+                    currentGuard = it.substringAfter("#").substringBefore(" ").toInt()
+                    Collections.emptyList<SleepClock>()
                 } else {
-
+                    val sc = SleepClock(currentGuard, time[0].toInt(), time[1].toInt())
+                    if (it.contains("asleep")) {
+                        lastSleepStart = sc
+                        Collections.emptyList<SleepClock>()
+                    } else {
+                        lastSleepStart.tickTo(sc)
+                    }
                 }
             }
-       }
-    }
+            .flatten()
+            .filter { it.hour == 0 }
 
-    println(demo)
 
+    val guardWithMostSleepMinutes = sleepMinutes
+            .groupingBy { it.guard }
+            .eachCount()
+            .maxBy { it.value }?.key
+
+    val maxMinutesForGuard = sleepMinutes
+            .filter { it.guard == guardWithMostSleepMinutes }
+            .groupingBy { it.minute }
+            .eachCount()
+            .maxBy { it.value }?.key
+
+    println("Part 1: result = ${maxMinutesForGuard!! * guardWithMostSleepMinutes!!}")
+
+    val maxMinutesByGuard = sleepMinutes
+            .groupingBy { Pair(it.minute, it.guard) }
+            .eachCount()
+            .maxBy { it.value }?.key
+
+    println("Part 1: result = ${maxMinutesByGuard!!.first * maxMinutesByGuard!!.second}")
 }
