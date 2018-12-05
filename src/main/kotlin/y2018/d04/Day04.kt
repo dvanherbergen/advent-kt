@@ -1,8 +1,6 @@
 package y2018.d04
 
 import java.io.File
-import java.util.*
-import kotlin.collections.ArrayList
 
 data class SleepClock(val guard: Int, val hour: Int, val minute: Int) {
     private fun tick(): SleepClock {
@@ -35,15 +33,14 @@ fun main(args: Array<String>) {
     val sleepMinutes = File("src/main/resources/y2018/d04/input.txt").readLines()
             .sortedBy { it.substringBefore("]") }
             .map {
-                val time = it.substring(12).substringBefore("]").split(":")
                 if (it.contains("#")) {
                     currentGuard = it.substringAfter("#").substringBefore(" ").toInt()
-                    Collections.emptyList<SleepClock>()
+                    emptyList()
                 } else {
-                    val sc = SleepClock(currentGuard, time[0].toInt(), time[1].toInt())
+                    val sc = SleepClock(currentGuard, it.substring(12,14).toInt(), it.substring(15,17).toInt())
                     if (it.contains("asleep")) {
                         lastSleepStart = sc
-                        Collections.emptyList<SleepClock>()
+                        emptyList()
                     } else {
                         lastSleepStart.tickTo(sc)
                     }
@@ -51,7 +48,6 @@ fun main(args: Array<String>) {
             }
             .flatten()
             .filter { it.hour == 0 }
-
 
     val guardWithMostSleepMinutes = sleepMinutes
             .groupingBy { it.guard }
@@ -71,5 +67,5 @@ fun main(args: Array<String>) {
             .eachCount()
             .maxBy { it.value }?.key
 
-    println("Part 1: result = ${maxMinutesByGuard!!.first * maxMinutesByGuard!!.second}")
+    println("Part 2: result = ${maxMinutesByGuard!!.first * maxMinutesByGuard.second}")
 }
