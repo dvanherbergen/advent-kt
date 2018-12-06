@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.2.31"
+    kotlin("jvm") version "1.3.11"
 }
 
 repositories {
@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib", "1.3.10"))
+    implementation(kotlin("stdlib", "1.3.11"))
     implementation("io.reactivex.rxjava2:rxkotlin:2.3.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.3.1")
