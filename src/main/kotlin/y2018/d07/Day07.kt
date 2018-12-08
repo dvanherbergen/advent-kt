@@ -14,7 +14,7 @@ fun main() {
     }
 
     fun String.containsAllPrerequisitesFor(c: String): Boolean {
-        return c.prerequisiteSteps().filter { p -> !this.contains(p) }.count() == 0
+        return c.prerequisiteSteps().count { p -> !this.contains(p) } == 0
     }
 
     fun String.getSuccessiveSteps(): List<String> {
@@ -32,7 +32,7 @@ fun main() {
                     .toList()
 
     while (backlog.isNotEmpty()) {
-        val nextStep = backlog.find { result.containsAllPrerequisitesFor(it) }?.first().toString()
+        val nextStep = backlog.firstOrNull { result.containsAllPrerequisitesFor(it) } ?: ""
         result += nextStep
         backlog = nextStep.getSuccessiveSteps().filter { !backlog.contains(it) } + backlog
         backlog = backlog.sorted().filter { it != nextStep }
@@ -58,7 +58,7 @@ fun main() {
         workers.filter { it.isAvailableOn(second) }.forEach {
             it.startNewStep(second, getNextAvailableStep())
         }
-        if (workers.filter { !it.isAvailableOn(second) }.count() == 0) {
+        if (workers.count { !it.isAvailableOn(second) } == 0) {
             println("Part 2: result = $second")
             break
         }
