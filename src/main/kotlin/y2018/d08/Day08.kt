@@ -4,65 +4,51 @@ import java.io.File
 
 fun main() {
 
-
     val input = File("src/main/resources/y2018/d08/input.txt").readText().split("\\s+".toRegex()).filter { it != "" }.map { it.toInt() }
 
-
-    input.forEach {
-        println(it)
-    }
-
-    val allNodes: List<Node> = extractNodes(input).first
-
-   allNodes.forEach {
-       println(it.metadata)
-   }
-
-    val result = allNodes.map { it.metadata }
+    val rootNode = extractNode(input).first
+    val result = getNodeAndAllChildren(rootNode)
+            .map { it.metadata }
             .flatten()
             .sum()
 
-    println(result)
+    println("Part 1: result = $result")
+    println("Part 2: result = ${rootNode.value()}")
 }
 
-fun extractNodes(input: List<Int>): Pair<List<Node>, List<Int>> {
+fun getNodeAndAllChildren(n: Node): List<Node> {
+    return listOf(n) + n.children.flatMap { getNodeAndAllChildren(it) }
+}
 
-    val nodes = ArrayList<Node>()
-    var remainder = input
+fun extractNode(input: List<Int>): Pair<Node, List<Int>> {
 
-    val n = Node(input[0], input[1])
-    nodes.add(n)
-    remainder = input.subList(2, input.size)
-    for (i in 1..n.childCount) {
-        println("loop $i")
-        val result = extractNodes(remainder)
-        nodes.addAll(result.first)
+    val node = Node(input[0], input[1])
+    var remainder = input.subList(2, input.size)
+
+    for (i in 1..node.childCount) {
+        val result = extractNode(remainder)
+        node.children.add(result.first)
         remainder = result.second
     }
 
-    n.metadata = remainder.subList(0, n.metaCount)
-    remainder = remainder.subList(n.metaCount, remainder.size)
+    node.metadata = remainder.subList(0, node.metaCount)
+    remainder = remainder.subList(node.metaCount, remainder.size)
 
-    return Pair(nodes, remainder)
+    return Pair(node, remainder)
 }
 
 class Node(val childCount: Int, val metaCount: Int) {
 
     var metadata: List<Int> = emptyList()
+    val children = ArrayList<Node>()
 
-/*
-    val children = List<Node>()
-
-   constructor(values: List<Int>) : this(values[0], values[1]) {
-
-       for (i in childCount) {
-           values =
-       }
-
-   }
-
-    fun children(): List<Node> {
-        return emptyList()
+    fun value(): Int {
+        return if (children.isEmpty()) {
+            metadata.sum()
+        } else {
+            metadata.map {
+                if (it <= childCount) children[it - 1].value() else 0
+            }.sum()
+        }
     }
-*/
 }
