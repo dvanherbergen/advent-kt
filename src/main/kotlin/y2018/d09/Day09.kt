@@ -1,5 +1,8 @@
 package y2018.d09
 
+import kotlin.system.measureNanoTime
+import kotlin.system.measureTimeMillis
+
 data class Move(val elf: Int, val marble: Int)
 
 fun main() {
@@ -14,14 +17,27 @@ fun main() {
 
      */
 
-    assert(32 == calcScores(9, 25))
-    assert(8317 == calcScores(10, 1618))
-    assert(146373 == calcScores(13, 7999))
-    assert(2764 == calcScores(17, 1104))
-    assert(54718 == calcScores(21, 6111))
-    assert(37305 == calcScores(30, 5807))
+    assert(32 == getHighScore(9, 25)!!.second)
+    assert(8317 == getHighScore(10, 1618)!!.second)
+    assert(146373 == getHighScore(13, 7999)!!.second)
+//    assert(2764 == getHighScore(17, 1104)!!.second)
+//    assert(54718 == getHighScore(21, 6111)!!.second)
+//    assert(37305 == getHighScore(30, 5807)!!.second)
 
-    println("Part 1: result = ${calcScores(455, 71223)}")
+    val hs = getHighScore(455, 71223)
+    println("Part 1: result = ${hs!!.second}")
+    val elf = hs.first
+    println("Elf = $elf")
+
+    // 71223 -> 186 ms
+    // 712230 -> 19968 ms
+    // 712230 ->
+
+    val time = measureTimeMillis {
+        val x = getScoresForElf(455, 712230, elf)
+        println("Part 2: result = $x")
+    }
+    println("# $time ms")
 }
 
 
@@ -45,29 +61,33 @@ fun moves(players: Int, lastMarble: Int): Sequence<Move> {
 class Board() {
 
     val circle = mutableListOf(0)
-    var currentMarble = 0
+    var currentMarbleIndex = 0
 
     fun addMarble(marble: Int): Int {
 
-
         var score = 0
 
+        val time = measureNanoTime {
         if (marble % 23 == 0) {
-            // TODO special handling for 23
             score += marble
-
-            val removePos = getRealIndex(circle.indexOf(currentMarble) - 7)
+            val removePos = getRealIndex(currentMarbleIndex - 7)
             score += circle.removeAt(removePos)
-            currentMarble = circle[removePos]
+            currentMarbleIndex = removePos
 
         } else {
 
             if (circle.size == 1) {
                 circle.add(marble)
+                currentMarbleIndex = 1
             } else {
-                circle.add(getRealIndex(circle.indexOf(currentMarble) + 2), marble)
+                currentMarbleIndex = getRealIndex(currentMarbleIndex + 2)
+                circle.add(currentMarbleIndex, marble)
             }
-            currentMarble = marble
+        }
+        }
+
+        if (marble % 10000 == 0) {
+           // println("add time: $time")
         }
 
         //println("Board: $circle - current: $currentMarble")
@@ -86,39 +106,33 @@ class Board() {
 
 }
 
-
-fun calcScores(players: Int, lastMarble: Int): Int {
-
+fun getScores(players: Int, lastMarble: Int): List<Pair<Int, Int>> {
     val board = Board()
-
-    val player = moves(players, lastMarble)
-
+    return moves(players, lastMarble)
             .map {
-           //     println(it)
                 Pair(it.elf, board.addMarble(it.marble))
             }
             .groupBy { it.first }
-
             .map {
                 Pair(it.key, it.value.sumBy { it.second })
             }
+
+}
+
+fun getScoresForElf(players: Int, lastMarble: Int, elf: Int): Int {
+    val board = Board()
+    return moves(players, lastMarble)
+            .map {
+                Pair(it.elf, board.addMarble(it.marble))
+            }
+            .filter { it.first == elf }
+            .map { it.second }
+            .sum()
+
+}
+
+fun getHighScore(players: Int, lastMarble: Int): Pair<Int, Int>? {
+
+    return getScores(players, lastMarble)
             .maxBy { it.second }
-
-
-    return player!!.second
-
-/*
-
-1=[(1, 0), (1, 0), (1, 0)]
-2=[(2, 0), (2, 0), (2, 0)]
-3=[(3, 0), (3, 0), (3, 0)]
-4=[(4, 0), (4, 0), (4, 0)]
-5=[(5, 0), (5, 0), (5, 32)]
-6=[(6, 0), (6, 0), (6, 0)]
-7=[(7, 0), (7, 0), (7, 0)]
-8=[(8, 0), (8, 0)]
-9=[(9, 0), (9, 0)]
- */
-
-
 }
