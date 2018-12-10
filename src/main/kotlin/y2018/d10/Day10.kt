@@ -1,54 +1,41 @@
+import io.reactivex.rxkotlin.toObservable
 import java.io.File
 
 data class Star(val x:Int, val y: Int, val vx: Int, val vy: Int) {
-    fun move(): Star {
-        return Star(x + vx, y + vy, vx, vy)
-    }
+    fun move(): Star = Star(x + vx, y + vy, vx, vy)
+}
+
+data class Constellation(val second: Int, val stars: List<Star>) {
+    fun minX() = stars.minBy { it.x }!!.x
+    fun maxX() = stars.maxBy { it.x }!!.x
+    fun minY() = stars.minBy { it.y }!!.y
+    fun maxY() = stars.maxBy { it.y }!!.y
 }
 
 fun main() {
 
-    val regex = """.*<(.*),(.*)>.*<(.*),(.*)>.*""".toRegex()
+    val regex = ".*<(.*),(.*)>.*<(.*),(.*)>.*".toRegex()
 
-    var stars = File("src/main/resources/y2018/d10/input.txt").readLines()
-            .asSequence()
+    val stars = File("src/main/resources/y2018/d10/input.txt").readLines()
             .map { regex.matchEntire(it)!!.destructured
                     .let { (a, b, c, d) -> Star(a.trim().toInt(), b.trim().toInt(), c.trim().toInt() ,d.trim().toInt()) }}
-            .toList()
 
+    val finalConstellation = (1..100000).toObservable()
+            .scan(Constellation(0, stars)) { acc, second -> Constellation(second, acc.stars.map { it.move() }) }
+            .filter { it.maxY() - it.minY() < 19 }
+            .blockingFirst()
 
+    fun toPrintableRow(rowOfStars: List<Star>): String {
+       return (finalConstellation.minX()..finalConstellation.maxX())
+               .joinToString("") { x ->  if (rowOfStars.find { it.x == x} == null) " " else "#" }
+    }
 
+    val result = finalConstellation.stars
+            .groupBy { it.y }
+            .toSortedMap()
+            .map { toPrintableRow(it.value) }
+            .joinToString("\n")
 
-
-
-   for (i in 1..100000) {
-
-       stars = stars.map { it.move() }
-
-       val minX = stars.minBy { it.x }!!.x
-       val maxX = stars.maxBy { it.x }!!.x
-       val minY = stars.minBy { it.y }!!.y
-       val maxY = stars.maxBy { it.y }!!.y
-
-       if (maxY - minY < 19) {
-
-            println("Seconds $i")
-           for (iY in (minY-2)..(maxY+2)  ) {
-               for (iX in (minX-2)..(maxX+2)) {
-                   val star = stars.find { it.x == iX && it.y == iY }
-                   if (star == null) {
-                       print(" ")
-                   } else {
-                       print("#")
-                   }
-               }
-               print("\n")
-           }
-
-           break
-       }
-
-   }
-
-
+    println("Found final constellation in ${finalConstellation.second} seconds.\n")
+    println(result)
 }
