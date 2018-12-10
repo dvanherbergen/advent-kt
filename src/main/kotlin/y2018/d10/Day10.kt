@@ -25,9 +25,9 @@ fun main() {
             .filter { it.maxY() - it.minY() < 19 }
             .blockingFirst()
 
-    fun toPrintableRow(rowOfStars: List<Star>): String {
+    fun toPrintableRow(starsInRow: List<Star>): String {
        return (finalConstellation.minX()..finalConstellation.maxX())
-               .joinToString("") { x ->  if (rowOfStars.find { it.x == x} == null) " " else "#" }
+               .joinToString("") { x ->  if (starsInRow.find { it.x == x } == null) " " else "#" }
     }
 
     val result = finalConstellation.stars
