@@ -1,5 +1,8 @@
 package y2018.d11
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlin.system.measureTimeMillis
 
 fun powerLevel(x: Int, y: Int, serial: Int): Int {
@@ -10,23 +13,21 @@ fun powerLevel(x: Int, y: Int, serial: Int): Int {
 
 data class Square(val x: Int, val y: Int, val serial: Int, val size: Int = 3) {
     fun totalPower(): Int {
-        var power = 0
-        for (i in 1..size) {
-            for (j in 1..size) {
-                power += powerLevel(x + i - 1, y + j - 1, serial)
+        return sequence<Int> {
+            for (i in 1..size) {
+                for (j in 1..size) {
+                    powerLevel(x + i - 1, y + j - 1, serial)
+                }
             }
-        }
-        return power
+        }.sum()
     }
 }
 
-fun squares(serial: Int, minSquareSize: Int, maxSquareSize: Int): Sequence<Square> {
+fun squares(serial: Int, size: Int): Sequence<Square> {
     return sequence {
         for (x in 1..300) {
             for (y in 1..300) {
-                for (size in minSquareSize..maxSquareSize) {
-                    yield(Square(x, y, serial, size))
-                }
+                yield(Square(x, y, serial, size))
             }
         }
     }.filter { it.x + it.size <= 300 && it.y + it.size <= 300 }
@@ -34,20 +35,25 @@ fun squares(serial: Int, minSquareSize: Int, maxSquareSize: Int): Sequence<Squar
 
 fun main() {
 
+    assert(4 == powerLevel(3,5,8))
+    assert(-5 == powerLevel(122,79,57))
+    assert(119 == Square(232, 251, 42, 12).totalPower())
+    assert(113 == Square(90, 269, 18, 16).totalPower())
+
     val time = measureTimeMillis {
 
-        assert(4 == powerLevel(3,5,8))
-        assert(-5 == powerLevel(122,79,57))
-        assert(119 == Square(232, 251, 42, 12).totalPower())
-        assert(113 == Square(90, 269, 18, 16).totalPower())
-
-        val result1 = squares(7989,3,3).maxBy { it.totalPower() }
+        val result1 = squares(7989, 3).maxBy { it.totalPower() }
         println("Part 1: result = ${result1!!.x},${result1!!.y}")
 
-        val result2 = squares(7989,1,300).maxBy { it.totalPower() }
-        println("Part 2: result = ${result2!!.x},${result2!!.y},${result2!!.size}")
+        val routines = (1..300).map {
+            GlobalScope.async {
+                squares(7980, it).maxBy { it.totalPower() }
+            }
+        }
 
+        val result2 = runBlocking { routines.map { it.await() }}.filter { it != null }.maxBy { it!!.totalPower() }
+        println("Part 2: result = ${result2!!.x},${result2!!.y},${result2!!.size}")
     }
 
-    println("# $time ms to complete.") // 267039
+    println("# $time ms to complete.")
 }
