@@ -13,10 +13,10 @@ fun powerLevel(x: Int, y: Int, serial: Int): Int {
 
 data class Square(val x: Int, val y: Int, val serial: Int, val size: Int = 3) {
     fun totalPower(): Int {
-        return sequence<Int> {
+        return sequence {
             for (i in 1..size) {
                 for (j in 1..size) {
-                    powerLevel(x + i - 1, y + j - 1, serial)
+                    yield(powerLevel(x + i - 1, y + j - 1, serial))
                 }
             }
         }.sum()
