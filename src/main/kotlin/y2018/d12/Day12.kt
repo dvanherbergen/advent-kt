@@ -1,105 +1,50 @@
 package y2018.d12
 
+import io.reactivex.rxkotlin.toObservable
 import java.io.File
 import kotlin.system.measureTimeMillis
 
-class GrowPattern {
-
-    val plant: Boolean
-    val pattern: IntArray
-
-    constructor(input: String) {
-        this.plant = input.endsWith("#")
-        this.pattern = input.substringBefore(" =>").asSequence()
-                .map { when(it) {
-                    '#' -> 1
-                    else -> 0
-                }}.toList().toIntArray()
-    }
-}
-
 fun main() {
 
-     val input = File("src/main/resources/y2018/d12/input.txt").readLines()
+    val input = File("src/main/resources/y2018/d12/input.txt").readLines()
+    val offset = 5
+    val initialPots = ".".repeat(offset) + input[0].substringAfter(": ") + ".".repeat(200)
+    val growPatterns = input.drop(2).filter { it.endsWith("#") }.map { it.substringBefore(" =>") }
 
-    val start = ".".repeat(5)
-    val end = ".".repeat(1000)
-    val initialState = (start + input[0].substringAfter(": ") + end).asSequence()
-            .map { when(it) {
-                '#' -> 1
-                else -> 0
-            }}.toList().toIntArray()
-    val patterns = input.drop(2).map { GrowPattern(it) }.filter { it.plant }
-
-
-    fun slices(input: IntArray): Sequence<IntArray> {
+    fun groupPots(pots: String): Sequence<String> {
         return sequence {
-            yield(intArrayOf(0,0,0,0,0))
-            yield(intArrayOf(0,0,0,0,0))
-            for (i in 0..input.size - 6) {
-                yield(input.sliceArray(i..i+4))
+            for (i in 0..pots.length - 5) {
+                yield(pots.substring(i, i + 5))
             }
-            yield(intArrayOf(0,0,0,0,0))
-            yield(intArrayOf(0,0,0,0,0))
-            yield(intArrayOf(0,0,0,0,0))
         }
     }
 
-
-    println(initialState.size)
-    println(initialState.contentToString())
-
-    patterns.forEach { println(it.pattern.contentToString()) }
-
-    println(intArrayOf(0,1,0,1).contentEquals(intArrayOf(0,1,0,1)))
-
-    fun grow(input: IntArray): IntArray {
-
-        return slices(input)
-            .map { slice -> if (patterns.find {
-                        //println("Comparing ${it.pattern.contentToString()} with ${slice.contentToString()}")
-                        it.pattern.contentEquals(slice)
-                    } != null) 1 else 0 }
-            .toList()
-            .toIntArray()
+    fun grow(pots: String): String {
+        return groupPots(pots)
+                .map { slice -> if (growPatterns.find { it == slice } != null) '#' else '.' }
+                .joinToString("", prefix = pots.take(2), postfix = pots.takeLast(2))
     }
 
-    val time = measureTimeMillis {
+    val result = (1..20).fold(initialPots) { pots, i -> grow(pots) }
+    println("Part 1: result = ${totalPotValue(-offset.toLong(), result)}")
 
-    var result = initialState
-    //println(" 0: ${result.pretty()}")
-    for (i in 1..500) {
-        result = grow(result)
-//        if (i < 10) {
-//            println(" ${i}: ${result.pretty()}")
-//        } else {
-//            println("${i}: ${result.pretty()}")
-//
-//        }
+    val duration = measureTimeMillis {
+        val result2 = (1..50_000_000_000).toObservable()
+                .scan(Pair(50_000_000_000 - offset, initialPots)) { p, _ -> Pair(p.first - 1, grow(p.second)) }
+                .skipWhile { it.second.rotate() != grow(it.second) }
+                .blockingFirst()
+        println("Part 2: result = ${totalPotValue(result2.first, result2.second)}")
     }
 
-
-
-
-
-    var sum = 0
-    for (i in 0..result.size-1) {
-        sum += (result[i] * (i- 5))
-    }
-
-    println(sum)
-
-
-    println(result.mapIndexed { i, plant ->
-        if (plant == 1) i-5 else 0
-    }.filter { it > 0 }
-            .map { it + (50000000000 - 500)}
-            .sum())
-
-    }
-    println("Completed in $time")
+    println("Took $duration ms to complete.")
 }
 
-fun IntArray.pretty(): String {
-    return this.asSequence().map { if (it == 1)  "#" else "."}.joinToString(" ")
+fun totalPotValue(offset: Long, pots: String): Long {
+    return pots.asSequence()
+            .mapIndexed { i, pot -> if (pot == '#') offset + i else 0 }
+            .sum()
+}
+
+fun String.rotate(): String {
+    return this.takeLast(1) + this.dropLast(1)
 }
