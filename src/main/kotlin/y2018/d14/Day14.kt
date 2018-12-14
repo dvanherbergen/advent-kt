@@ -1,91 +1,42 @@
 package y2018.d14
 
+fun getSuperSecretRecipes(whenToStop: (recipes: List<Int>) -> Boolean): String {
+
+    val recipes = mutableListOf(3, 7)
+    val elfPositions = intArrayOf(0, 1)
+
+    while (true) {
+        elfPositions.map { recipes[it % recipes.size] }.sum().digits().forEach { recipes.add(it) }
+        for (i in 0 until elfPositions.size) {
+            elfPositions[i] = (elfPositions[i] + 1 + recipes[elfPositions[i]]) % recipes.size
+        }
+        if (whenToStop(recipes)) {
+            return recipes.joinToString("")
+        }
+    }
+}
+
 fun main() {
 
-
-    val input = mutableListOf<Int>(3,7)
-//    val input = mutableListOf<Int>(9,9,0,9,4,1)
-    val elfPositions = mutableListOf<Int>(0, 1)
-            //    val elfPositions = mutableListOf<Int>(0, 1, 2, 3, 4, 5)
-
-    val start = 990941
-
-    println(input)
-    while (true) {
-
-
-        var score = 0
-        elfPositions.forEach {
-            score += input[it % input.size]
-        }
-
-
-        score.toString().forEach {
-            input.add(("" + it).toInt())
-        }
-
-
-
-      //  println("Position ${elfPositions[0]} + to move (${(1 +  input[elfPositions[0]])}) = ${((elfPositions[0] + 1 +  input[elfPositions[0]]) % input.size)}")
-        for (i in 0 until elfPositions.size) {
-            elfPositions[i] = ((elfPositions[i] + 1 +  input[elfPositions[i]]) % input.size)
-
-        }
-
-//        for (i in 0 until input.size) {
-//            if (i == elfPositions[0]) {
-//                print("(${input[i]}) ")
-//            } else if (i == elfPositions[1]) {
-//                print("[${input[i]}] ")
-//            } else {
-//                print(" ${input[i]}  ")
-//            }
-//        }
-//        println("")
-
-       if (input.size >= start + 10) {
-           break;
-       }
+    val getNext10Recipes = fun(count: Int): String {
+        return getSuperSecretRecipes { it.size >= count + 10 }.drop(count).take(10)
     }
 
+    assert("5158916779" == getNext10Recipes(9))
+    assert("5941429882" == getNext10Recipes(2018))
+    println("Part 1: result = ${getNext10Recipes(990941)}")
 
-
-
-    println(input)
-    // 3230474240
-
-    println(input.slice(start until start+10).joinToString(""))
-
-
-    while (true) {
-
-
-        var score = 0
-        elfPositions.forEach {
-            score += input[it % input.size]
-        }
-
-
-        score.toString().forEach {
-            input.add(("" + it).toInt())
-        }
-
-
-
-        //  println("Position ${elfPositions[0]} + to move (${(1 +  input[elfPositions[0]])}) = ${((elfPositions[0] + 1 +  input[elfPositions[0]]) % input.size)}")
-        for (i in 0 until elfPositions.size) {
-            elfPositions[i] = ((elfPositions[i] + 1 +  input[elfPositions[i]]) % input.size)
-
-        }
-
-
-        if ((input[input.size - 1]) == 1) {
-            if (input.takeLast(6).joinToString("") == "990941") {
-                println("took ${input.size - 6}")
-                break;
-            }
-        }
+    val getRecipesBefore = fun(recipePattern: String): Int {
+        return getSuperSecretRecipes { it.takeLast(recipePattern.length).joinToString("") == recipePattern
+                    || it.takeLast(recipePattern.length + 1).joinToString("").startsWith(recipePattern) }
+                .substringBefore(recipePattern).length
     }
-//153723222
 
+    assert(2018 == getRecipesBefore("59414"))
+    assert(10 == getRecipesBefore("15891"))
+    println("Part 2: result = ${getRecipesBefore("990941")}")
+}
+
+fun Int.digits(): List<Int> {
+    return this.toString().asSequence().map { Character.getNumericValue(it) }.toList()
 }
