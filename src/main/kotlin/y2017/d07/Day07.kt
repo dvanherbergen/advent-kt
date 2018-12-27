@@ -1,45 +1,40 @@
 package y2017.d07
 
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.io.File
 
-class Program (
-    val name: String,
-    var weight: Int = 0,
-    var parent: String? = null
-)
+class Program ( val name: String, val weight: Int, val childNames: List<String>)
 
-fun ArrayList<Program>.getProgram(name: String): Program {
-    var p = this.find { it.name == name }
-    if (p == null) {
-        p = Program(name)
-        this.add(p)
+
+fun main() {
+
+    val programs = File("src/main/resources/y2017/d07/input.txt").readLines().map {
+        val name = it.substringBefore(" ")
+        val weight = it.substringAfter("(").substringBefore(")").toInt()
+        val childNames = if (it.contains("->")) it.substringAfter("-> ").split(", ") else emptyList()
+        Program(name, weight, childNames)
     }
-    return p
-}
 
-fun main(args: Array<String>) {
+    fun Program.getChildren(): List<Program> = programs.filter { it.name in this.childNames }
+    fun Program.getTotalWeight(): Int = this.getChildren().map { it.getTotalWeight() }.sum() + this.weight
+    fun Program.isBalanced(): Boolean = this.childNames.isEmpty() || this.getChildren().map { it.getTotalWeight() }.distinct().size == 1
 
-    val programs = ArrayList<Program>()
+    val root = programs.first { pgm -> programs.find { it.childNames.contains(pgm.name) } == null }
 
-    Files.readAllLines(Paths.get("src/main/resources/y2017/d07/input.txt"))
-            .map { it.filter { c -> c !in charArrayOf(',','(',')', '-', '>') } }
-            .map { it.replace("  ", " ") }
-            .map { it.split(" ") }
-            .forEach {
-                println(it)
-                val p = programs.getProgram(it[0])
-                p.weight = it[1].toInt()
-                val children = it.drop(2)
-                for (child in children) {
-                    val c = programs.getProgram(child)
-                    c.parent = p.name
-                }
+    println("Part 1: root program = ${root.name}")
+
+    fun findUnbalancedProgram(program: Program): Pair<Program, Int> {
+        program.getChildren().forEach {
+            if (!it.isBalanced()) {
+                return findUnbalancedProgram(it)
             }
+        }
+        val childrenByWeight = program.getChildren().groupBy { it.getTotalWeight() }
+        val unbalancedProgram = childrenByWeight.values.first { it.size == 1 }.first()
+        val expectedWeight = childrenByWeight.values.first { it.size > 1 }.first().getTotalWeight()
+        return Pair(unbalancedProgram, expectedWeight)
+    }
 
-
-    val root = programs.find { it.parent == null }
-
-
-    println("Part 1: result = ${root!!.name}")
+    val (unbalancedProgram, requiredWeight) = findUnbalancedProgram(root)
+    val expectedWeight = requiredWeight - unbalancedProgram.getTotalWeight() + unbalancedProgram.weight
+    println("Required weight for unbalanced disk: ${unbalancedProgram.name} = $expectedWeight")
 }

@@ -23,13 +23,8 @@ fun String.commonLetters(other: String): String {
 }
 
 fun part1(input: List<String>): Int {
-    var twoCount = 0
-    var threeCount = 0
-    input.forEach {
-        if (it.hasLetterCount(2)) twoCount++
-        if (it.hasLetterCount(3)) threeCount++
-    }
-    return twoCount * threeCount
+    return input.filter { it.hasLetterCount(2) }.count() *
+            input.filter { it.hasLetterCount(3) }.count()
 }
 
 fun part2(codes: List<String>): String {
