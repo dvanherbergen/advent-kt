@@ -37,18 +37,12 @@ fun main() {
 
         val shrunkenBots = nanobots.map { Nanobot(it.x / scale, it.y / scale, it.z / scale, it.r / scale) }
         fun findBotsInRange(x: Long, y: Long, z: Long): List<Nanobot> = shrunkenBots.filter { it.contains(x, y, z) }
-
-        val min_x = x / scale
-        val min_y = y / scale
-        val min_z = z / scale
-        val max_x = xx / scale
-        val max_y = yy / scale
-        val max_z = zz / scale
+        fun scaled(num: Long): Long = num / scale
 
         val pointsToSearch = sequence {
-            for (ix in min_x..max_x step bucketSize) {
-                for (iy in min_y..max_y step bucketSize) {
-                    for (iz in min_z..max_z step bucketSize) {
+            for (ix in scaled(x)..scaled(xx) step bucketSize) {
+                for (iy in scaled(y)..scaled(yy) step bucketSize) {
+                    for (iz in scaled(z)..scaled(zz) step bucketSize) {
                         yield(Point(ix, iy, iz, 0))
                     }
                 }
@@ -60,21 +54,21 @@ fun main() {
                 .filter { it.count >= minCount }
 
         val max = matches.maxBy { it.count }!!.count
-        val bm = matches.filter { it.count == max }.sortedBy { it.distanceTo(0, 0, 0) }.first()
+        val bestMatch = matches.filter { it.count == max }.sortedBy { it.distanceTo(0, 0, 0) }.first()
         println("Max found using scale $scale ($bucketSize): $max")
 
         return if (scale > 1) {
             findClosestPoint(
-                    (bm.x - bucketSize) * scale, (bm.x + bucketSize) * scale,
-                    (bm.y - bucketSize) * scale, (bm.y + bucketSize) * scale,
-                    (bm.z - bucketSize) * scale, (bm.z + bucketSize) * scale, scale / 10, bucketSize, max)
+                    (bestMatch.x - bucketSize) * scale, (bestMatch.x + bucketSize) * scale,
+                    (bestMatch.y - bucketSize) * scale, (bestMatch.y + bucketSize) * scale,
+                    (bestMatch.z - bucketSize) * scale, (bestMatch.z + bucketSize) * scale, scale / 10, bucketSize, max)
         } else if (scale == 1 && bucketSize > 1L) {
             findClosestPoint(
-                    (bm.x - bucketSize) * scale, (bm.x + bucketSize) * scale,
-                    (bm.y - bucketSize) * scale, (bm.y + bucketSize) * scale,
-                    (bm.z - bucketSize) * scale, (bm.z + bucketSize) * scale, scale, 1, max)
+                    (bestMatch.x - bucketSize) * scale, (bestMatch.x + bucketSize) * scale,
+                    (bestMatch.y - bucketSize) * scale, (bestMatch.y + bucketSize) * scale,
+                    (bestMatch.z - bucketSize) * scale, (bestMatch.z + bucketSize) * scale, scale, 1, max)
         } else {
-            bm
+            bestMatch
         }
     }
 
